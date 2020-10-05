@@ -53,8 +53,8 @@ class SdlService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (sdlManager == null) {
             val transport = TCPTransportConfig(
-                19844,
-                "m.sdl.tools",
+                getString(R.string.sdl_tcp_port).toInt(),
+                getString(R.string.sdl_tcp_url),
                 false
             )
 
