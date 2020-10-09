@@ -4,11 +4,14 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
+import co.livil.hellosdl.voice_output.TtsSpeaker
 import com.smartdevicelink.managers.SdlManager
 import com.smartdevicelink.managers.SdlManagerListener
 import com.smartdevicelink.managers.lifecycle.LifecycleConfigurationUpdate
@@ -23,7 +26,6 @@ import com.smartdevicelink.proxy.rpc.enums.PredefinedLayout
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCResponseListener
 import com.smartdevicelink.transport.TCPTransportConfig
 import java.util.*
-import java.util.concurrent.Executors
 
 
 class SdlService : Service() {
@@ -47,6 +49,20 @@ class SdlService : Service() {
             .build()
 
         startForeground(NOTIFICATION_ID, serviceNotification)
+
+    }
+
+    private fun registerTtsReceiver() {
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val speaker = TtsSpeaker(context, sdlManager)
+                intent?.getStringExtra(TtsSpeaker.TTS_TEXT)?.let { speaker.speak(it) }
+            }
+
+        }
+
+        this.applicationContext.registerReceiver(receiver, IntentFilter(TtsSpeaker.TTS_ACTION))
     }
 
     override fun onDestroy() {
@@ -73,6 +89,7 @@ class SdlService : Service() {
                 override fun onStart() {
                     Log.d("SdlService", "Service started")
                     initializeVoiceCommands()
+                    registerTtsReceiver()
                 }
 
                 override fun onDestroy() {
@@ -136,7 +153,7 @@ class SdlService : Service() {
     }
 
     private fun sendAsrCommand(asr: String?) {
-        if(asr != null && asr.isNotEmpty()) {
+        if (asr != null && asr.isNotEmpty()) {
             val serviceIntent = Intent("com.bmwgroup.export.asr")
             serviceIntent.putExtra("text", asr)
             serviceIntent.flags = FLAG_ACTIVITY_NEW_TASK

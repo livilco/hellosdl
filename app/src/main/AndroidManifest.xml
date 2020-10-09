@@ -22,6 +22,12 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name="co.livil.hellosdl.receiver.VoiceInterfaceReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="de.semvox.breefing.tts"/>
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".SdlService"
             android:enabled="true"

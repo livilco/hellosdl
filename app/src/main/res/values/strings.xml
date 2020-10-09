@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">HelloSDL</string>
     <string name="sdl_tcp_url">m.sdl.tools</string>
-    <string name="sdl_tcp_port">19459</string>
+    <string name="sdl_tcp_port">12249</string>
 
     <array name="asr">
         <item>What is going on today?</item>
