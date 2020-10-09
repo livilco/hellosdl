@@ -31,7 +31,7 @@ class TtsSpeaker(private val context: Context?, private val sdlManager: SdlManag
 
             private fun sendResponse(success: Boolean?) {
                 val serviceIntent = Intent("co.livil.dailybriefing.tts.interaction.over")
-                serviceIntent.setPackage("de.semvox.breefing")
+                serviceIntent.setPackage("de.semvox.voiceinterface")
                 serviceIntent.putExtra("hadError", success)
                 serviceIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                 context?.applicationContext?.sendBroadcast(serviceIntent)
