@@ -6,11 +6,14 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.IBinder
 import android.util.Log
 import com.smartdevicelink.managers.SdlManager
 import com.smartdevicelink.managers.SdlManagerListener
 import com.smartdevicelink.managers.lifecycle.LifecycleConfigurationUpdate
+import com.smartdevicelink.managers.screen.menu.VoiceCommand
+import com.smartdevicelink.managers.screen.menu.VoiceCommandSelectionListener
 import com.smartdevicelink.proxy.RPCResponse
 import com.smartdevicelink.proxy.rpc.SetDisplayLayout
 import com.smartdevicelink.proxy.rpc.SetDisplayLayoutResponse
@@ -20,14 +23,17 @@ import com.smartdevicelink.proxy.rpc.enums.PredefinedLayout
 import com.smartdevicelink.proxy.rpc.listeners.OnRPCResponseListener
 import com.smartdevicelink.transport.TCPTransportConfig
 import java.util.*
+import java.util.concurrent.Executors
+
 
 class SdlService : Service() {
-    private var sdlManager : SdlManager? = null
+    private var sdlManager: SdlManager? = null
 
     override fun onCreate() {
         super.onCreate()
 
-        val notificationManager= getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             CHANNEL_ID,
             "SDL Service",
@@ -44,9 +50,11 @@ class SdlService : Service() {
     }
 
     override fun onDestroy() {
-       super.onDestroy()
+        super.onDestroy()
 
-        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager?)?.deleteNotificationChannel(CHANNEL_ID)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager?)?.deleteNotificationChannel(
+            CHANNEL_ID
+        )
         stopForeground(true)
     }
 
@@ -55,15 +63,16 @@ class SdlService : Service() {
             val transport = TCPTransportConfig(
                 getString(R.string.sdl_tcp_port).toInt(),
                 getString(R.string.sdl_tcp_url),
-                false
+                true
             )
 
             val appType = Vector<AppHMIType>()
             appType.add(AppHMIType.MEDIA)
 
-            val listener = object: SdlManagerListener {
+            val listener = object : SdlManagerListener {
                 override fun onStart() {
                     Log.d("SdlService", "Service started")
+                    initializeVoiceCommands()
                 }
 
                 override fun onDestroy() {
@@ -108,6 +117,35 @@ class SdlService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private fun initializeVoiceCommands() {
+
+
+        val commands = listOf(*resources.getStringArray(R.array.asr))
+
+        val voiceCommands = commands
+            .map { c ->
+                VoiceCommand(
+                    Collections.singletonList(c),
+                    VoiceCommandSelectionListener { sendAsrCommand(c) }
+                )
+            }
+        Log.d("SdlService", "Initializing VC commands")
+
+        sdlManager!!.screenManager.voiceCommands = voiceCommands
+
+    }
+
+    private fun sendAsrCommand(asr: String?) {
+        if(asr != null && asr.isNotEmpty()) {
+            val serviceIntent = Intent("com.bmwgroup.export.asr")
+            serviceIntent.putExtra("text", asr)
+            serviceIntent.flags = FLAG_ACTIVITY_NEW_TASK
+            Log.d("SdlService", "Sending: $asr")
+            startActivity(serviceIntent)
+        }
+
+    }
+
     private fun changeView() {
         val setDisplayLayoutRequest = SetDisplayLayout().also {
             it.displayLayout = PredefinedLayout.GRAPHIC_WITH_TEXT.toString()
@@ -117,7 +155,10 @@ class SdlService : Service() {
                         Log.i("SdlService", "Display layout set successfully.")
                         updateView()
                     } else {
-                        Log.e("SdlService", "onError: ${response.resultCode} | Info: ${response.info}")
+                        Log.e(
+                            "SdlService",
+                            "onError: ${response.resultCode} | Info: ${response.info}"
+                        )
                     }
                 }
             }
