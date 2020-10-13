@@ -1,5 +1,30 @@
 <resources>
     <string name="app_name">HelloSDL</string>
     <string name="sdl_tcp_url">m.sdl.tools</string>
-    <string name="sdl_tcp_port">17284</string>
+    <string name="sdl_tcp_port">14967</string>
+
+    <array name="asr">
+        <item>What is going on today?</item>
+        <item>Open the first appointment</item>
+        <item>Open the second appointment</item>
+        <item>Open the third appointment</item>
+        <item>Open the last appointment</item>
+        <item>Readout the first email</item>
+        <item>Readout the second email</item>
+        <item>Repeat section one</item>
+        <item>Repeat section two</item>
+        <item>Repeat section three</item>
+        <item>Repeat section four</item>
+        <item>Next section</item>
+        <item>Previous section</item>
+        <item>What is next?</item>
+        <item>What time is my next event?</item>
+        <item>Who are my latest emails from?</item>
+        <item>navigate to more</item>
+        <item>navigate to latest</item>
+        <item>navigate to search</item>
+        <item>yes</item>
+
+
+    </array>
 </resources>
